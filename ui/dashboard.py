@@ -10,7 +10,11 @@ import time
 import sys
 import os
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(PROJECT_ROOT)
+
+# Ensure working directory is project root so relative paths work
+os.chdir(PROJECT_ROOT)
 
 from engine.feature_extractor import FeatureExtractor
 from engine.rule_engine import RuleEngine
