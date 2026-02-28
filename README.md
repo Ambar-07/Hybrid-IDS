@@ -50,13 +50,12 @@ hybrid-ids/
 Download CICIDS2017 from:  
 https://www.unb.ca/cic/datasets/ids-2017.html
 
-Use any of the CSV files (Friday, Wednesday, etc.)
 
 ## Team Tasks
 
 | Person | File(s) to own |
 |--------|---------------|
-| Leader (You) | fusion.py, rules.yaml, integration |
+| CS Person 1  | fusion.py, rules.yaml, integration |
 | CS Person 2  | feature_extractor.py, dataset loading |
 | CS Person 3  | testing, evaluation metrics, attack simulation |
 | DS/ML Person | ml_detector.py, model tuning |
