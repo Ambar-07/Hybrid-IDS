@@ -1,0 +1,154 @@
+# ============================================================
+#  Hybrid IDS — Signature Rules
+#  Add / modify rules here without touching any Python code.
+#
+#  Each rule:
+#    id         : unique string identifier
+#    name       : human-readable name
+#    category   : DoS | Probe | Brute-Force | Exfiltration | Misc
+#    severity   : LOW | MEDIUM | HIGH | CRITICAL
+#    confidence : 0.0 – 1.0  (how sure we are when rule fires)
+#    conditions : list of { field, op, value }
+#                 ALL conditions must be true (AND logic)
+#                 ops: > >= < <= == !=
+# ============================================================
+
+rules:
+
+  # ── DoS / DDoS ─────────────────────────────────────────────────────────────
+
+  - id: DOS-001
+    name: "High Volume SYN Flood"
+    category: DoS
+    severity: CRITICAL
+    confidence: 0.95
+    conditions:
+      - { field: syn_flag_count,    op: ">",  value: 100 }
+      - { field: ack_flag_count,    op: "<",  value: 5   }
+      - { field: flow_pkts_per_sec, op: ">",  value: 1000 }
+
+  - id: DOS-002
+    name: "UDP Flood"
+    category: DoS
+    severity: HIGH
+    confidence: 0.88
+    conditions:
+      - { field: protocol_type,     op: "==", value: 17  }   # UDP = 17
+      - { field: flow_pkts_per_sec, op: ">",  value: 500 }
+      - { field: byte_count,        op: ">",  value: 100000 }
+
+  - id: DOS-003
+    name: "ICMP Flood (Ping Flood)"
+    category: DoS
+    severity: HIGH
+    confidence: 0.90
+    conditions:
+      - { field: protocol_type,     op: "==", value: 1   }   # ICMP = 1
+      - { field: pkt_count,         op: ">",  value: 200 }
+      - { field: flow_pkts_per_sec, op: ">",  value: 300 }
+
+  # ── Port Scanning / Probing ─────────────────────────────────────────────────
+
+  - id: PROBE-001
+    name: "Port Scan (Low Duration, Many Packets)"
+    category: Probe
+    severity: MEDIUM
+    confidence: 0.82
+    conditions:
+      - { field: duration,          op: "<",  value: 500  }   # very short flows
+      - { field: pkt_count,         op: ">",  value: 20   }
+      - { field: syn_flag_count,    op: ">",  value: 10   }
+      - { field: ack_flag_count,    op: "<",  value: 3    }
+
+  - id: PROBE-002
+    name: "Stealth Scan (FIN/NULL/XMAS)"
+    category: Probe
+    severity: HIGH
+    confidence: 0.85
+    conditions:
+      - { field: fin_flag_count,    op: ">",  value: 5  }
+      - { field: syn_flag_count,    op: "<",  value: 2  }
+      - { field: ack_flag_count,    op: "<",  value: 2  }
+
+  - id: PROBE-003
+    name: "Service Version Scan"
+    category: Probe
+    severity: LOW
+    confidence: 0.70
+    conditions:
+      - { field: pkt_count,         op: ">",  value: 10  }
+      - { field: byte_count,        op: "<",  value: 500 }
+      - { field: duration,          op: "<",  value: 200 }
+
+  # ── Brute Force ─────────────────────────────────────────────────────────────
+
+  - id: BRUTE-001
+    name: "SSH Brute Force"
+    category: Brute-Force
+    severity: HIGH
+    confidence: 0.87
+    conditions:
+      - { field: dst_port,          op: "==", value: 22   }
+      - { field: pkt_count,         op: ">",  value: 50   }
+      - { field: flow_pkts_per_sec, op: ">",  value: 10   }
+
+  - id: BRUTE-002
+    name: "FTP Brute Force"
+    category: Brute-Force
+    severity: HIGH
+    confidence: 0.85
+    conditions:
+      - { field: dst_port,          op: "==", value: 21  }
+      - { field: pkt_count,         op: ">",  value: 30  }
+      - { field: rst_flag_count,    op: ">",  value: 5   }
+
+  - id: BRUTE-003
+    name: "HTTP Brute Force (Login)"
+    category: Brute-Force
+    severity: MEDIUM
+    confidence: 0.78
+    conditions:
+      - { field: dst_port,          op: "==", value: 80  }
+      - { field: pkt_count,         op: ">",  value: 100 }
+      - { field: flow_bytes_per_sec,op: "<",  value: 1000 }
+
+  # ── Data Exfiltration ───────────────────────────────────────────────────────
+
+  - id: EXFIL-001
+    name: "Large Outbound Transfer"
+    category: Exfiltration
+    severity: HIGH
+    confidence: 0.75
+    conditions:
+      - { field: byte_count,        op: ">",  value: 5000000 }
+      - { field: bwd_pkt_len_mean,  op: ">",  value: 1000    }
+      - { field: duration,          op: ">",  value: 5000    }
+
+  - id: EXFIL-002
+    name: "DNS Tunneling (Large DNS Payload)"
+    category: Exfiltration
+    severity: HIGH
+    confidence: 0.80
+    conditions:
+      - { field: dst_port,          op: "==", value: 53  }
+      - { field: avg_pkt_size,      op: ">",  value: 300 }
+      - { field: pkt_count,         op: ">",  value: 50  }
+
+  # ── Suspicious Flags ────────────────────────────────────────────────────────
+
+  - id: MISC-001
+    name: "URG Flag Anomaly"
+    category: Misc
+    severity: MEDIUM
+    confidence: 0.72
+    conditions:
+      - { field: urg_flag_count,    op: ">",  value: 10 }
+
+  - id: MISC-002
+    name: "RST Storm"
+    category: Misc
+    severity: MEDIUM
+    confidence: 0.76
+    conditions:
+      - { field: rst_flag_count,    op: ">",  value: 50 }
+      - { field: flow_pkts_per_sec, op: ">",  value: 100 }
