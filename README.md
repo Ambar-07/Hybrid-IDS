@@ -1,4 +1,4 @@
-# 🛡️ Hybrid Intrusion Detection System
+#  Hybrid Intrusion Detection System
 
 Combines Rule-Based detection + ML Anomaly Detection + Risk Fusion.
 
